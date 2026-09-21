@@ -7,25 +7,25 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 if [ "$EUID" -ne 0 ]; then
-  echo -e "${RED}Please run this script as root (sudo bash install.sh).${NC}"
+  echo -e "${RED}Kripya is script ko root user se run karein (sudo bash install.sh).${NC}"
   exit 1
 fi
 
 show_menu() {
     clear
     echo -e "${CYAN}==========================================${NC}"
-    echo -e "${CYAN}      CJH PANEL - INSTALLATION MENU${NC}"
+    echo -e "${CYAN}      CJH PANEL - INSTALLATION MENU${NC}[span_1](start_span)[span_1](end_span)"
     echo -e "${CYAN}==========================================${NC}"
-    echo -e "1) Install CJH Panel (Main Master Node)"
-    echo -e "2) Uninstall CJH Panel"
-    echo -e "3) Install Daemon/Node (For Worker Servers)"
-    echo -e "4) Exit"
+    echo -e "1) Install CJH Panel (Main Master Node)[span_2](start_span)"[span_2](end_span)
+    echo -e "2) Uninstall CJH Panel[span_3](start_span)"[span_3](end_span)
+    echo -e "3) Install Daemon/Node (For Worker Servers)[span_4](start_span)"[span_4](end_span)
+    echo -e "4) Exit[span_5](start_span)"[span_5](end_span)
     echo -e "${CYAN}==========================================${NC}"
-    read -p "Select an option [1-4]: " choice
+    read -p "Apna option select karein [1-4]: " choice
 }
 
 install_panel() {
-    echo -e "${GREEN}Installing dependencies (Node.js, SQLite, Git, Docker)...${NC}"
+    echo -e "${GREEN}Dependencies install ho rahi hain (Node.js, SQLite, Git, Docker)...${NC}"
     apt-get update && apt-get upgrade -y
     apt-get install -y curl git build-essential docker.io
 
@@ -33,7 +33,7 @@ install_panel() {
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
     apt-get install -y nodejs
 
-    echo -e "${GREEN}Setting up CJH Panel directory...${NC}"
+    echo -e "${GREEN}CJH Panel directory setup ki ja rahi hai...${NC}"
     mkdir -p /var/www/cjh-panel
     cd /var/www/cjh-panel
 
@@ -41,7 +41,7 @@ install_panel() {
     cat << 'EOF' > package.json
 {
   "name": "cjh-panel",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Custom VM and Minecraft Server Management Panel",
   "main": "app.js",
   "scripts": {
@@ -59,7 +59,7 @@ EOF
 
     npm install
 
-    # Create main app file with Login, Register, Admin and Member Dashboards
+    # Create main app file with Proxy fix and Login/Register
     cat << 'EOF' > app.js
 const express = require('express');
 const session = require('express-session');
@@ -70,6 +70,9 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 50000;
+
+// Proxy trust fix for CodeSandbox and cloud environments
+app.set('trust proxy', true);
 
 // Database Setup
 const db = new sqlite3.Database('./database.sqlite', (err) => {
@@ -101,7 +104,6 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware for Auth
 const isAuthenticated = (req, res, next) => {
@@ -148,7 +150,7 @@ app.get('/login', (req, res) => {
                     <button type="submit">Login</button>
                 </form>
                 <div class="links">
-                    <p>Don't have an account? <a href="/register">Register here</a></p>
+                    <p>Account nahi hai? <a href="/register">Register karein</a></p>
                 </div>
             </div>
         </body>
@@ -164,7 +166,7 @@ app.post('/login', (req, res) => {
             if (user.role === 'admin') res.redirect('/admin');
             else res.redirect('/dashboard');
         } else {
-            res.send(`<script>alert('Invalid username or password!'); window.location.href='/login';</script>`);
+            res.send(`<script>alert('Galat username ya password hai!'); window.location.href='/login';</script>`);
         }
     });
 });
@@ -191,14 +193,14 @@ app.get('/register', (req, res) => {
         </head>
         <body>
             <div class="card">
-                <h2>Create Account</h2>
+                <h2>Account Banayein</h2>
                 <form action="/register" method="POST">
-                    <input type="text" name="username" placeholder="Choose Username" required>
-                    <input type="password" name="password" placeholder="Choose Password" required>
+                    <input type="text" name="username" placeholder="Username chuniye" required>
+                    <input type="password" name="password" placeholder="Password chuniye" required>
                     <button type="submit">Register</button>
                 </form>
                 <div class="links">
-                    <p>Already have an account? <a href="/login">Login here</a></p>
+                    <p>Pehle se account hai? <a href="/login">Login karein</a></p>
                 </div>
             </div>
         </body>
@@ -212,9 +214,9 @@ app.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         db.run(`INSERT INTO users (username, password, role) VALUES (?, ?, 'member')`, [username, hashedPassword], (err) => {
             if (err) {
-                res.send(`<script>alert('Username already exists!'); window.location.href='/register';</script>`);
+                res.send(`<script>alert('Yeh username pehle se maujood hai!'); window.location.href='/register';</script>`);
             } else {
-                res.send(`<script>alert('Registration successful! Please login.'); window.location.href='/login';</script>`);
+                res.send(`<script>alert('Registration safal rahi! Ab login karein.'); window.location.href='/login';</script>`);
             }
         });
     } catch (e) {
@@ -240,8 +242,8 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
         </head>
         <body>
             <div class="container">
-                <h1>Welcome, ${req.session.user.username} (Member)</h1>
-                <p>Yeh aapka Member Dashboard hai. Yahan aapke active VMs, Minecraft servers, aur settings show honge.</p>
+                <h1>Swagat hai, ${req.session.user.username} (Member)</h1>
+                <p>Yeh aapka Member Dashboard hai. Yahan aapke VMs aur Minecraft servers dikhenge.</p>
                 <hr style="border-color: #334155;">
                 <a href="/logout" class="btn">Logout</a>
             </div>
@@ -269,7 +271,7 @@ app.get('/admin', isAuthenticated, isAdmin, (req, res) => {
         <body>
             <div class="container">
                 <h1>Admin Control Panel</h1>
-                <p>Yahan se aap VMs create kar sakte hain, Nodes manage kar sakte hain, themes, logo aur settings badal sakte hain.</p>
+                <p>Yahan se aap VMs create, nodes manage, themes aur settings change kar sakte hain.</p>
                 <hr style="border-color: #334155;">
                 <a href="/logout" class="btn">Logout</a>
             </div>
@@ -286,7 +288,7 @@ app.get('/logout', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`CJH Panel running on port ${PORT}`);
+    console.log(`CJH Panel active hai port ${PORT} par`);
 });
 EOF
 
@@ -312,26 +314,26 @@ EOF
 
     clear
     echo -e "${GREEN}==========================================${NC}"
-    echo -e "${GREEN} CJH Panel Installed Successfully!${NC}"
-    echo -e "${GREEN} Port: 50000 (Active & Forwarded)${NC}"
+    echo -e "${GREEN} CJH Panel Safalta Purvak Install Ho Gaya!${NC}"
+    echo -e "${GREEN} Port: 50000 (Active & Proxy Trusted)${NC}"
     echo -e "${GREEN} Default Admin Username: admin${NC}"
     echo -e "${GREEN} Default Admin Password: admin${NC}"
     echo -e "${GREEN}==========================================${NC}"
 }
 
 uninstall_panel() {
-    echo -e "${RED}Uninstalling CJH Panel...${NC}"
+    echo -e "${RED}CJH Panel uninstall kiya ja raha hai...${NC}"
     systemctl stop cjh-panel
     systemctl disable cjh-panel
     rm -f /etc/systemd/system/cjh-panel.service
     rm -rf /var/www/cjh-panel
-    echo -e "${GREEN}CJH Panel has been completely removed.${NC}"
+    echo -e "${GREEN}CJH Panel ko poori tarah hata diya gaya hai.${NC}"
 }
 
 install_node() {
-    echo -e "${GREEN}Installing Daemon Node dependencies...${NC}"
+    echo -e "${GREEN}Daemon Node dependencies install ho rahi hain...${NC}"
     apt-get update && apt-get install -y docker.io curl
-    echo -e "${GREEN}Node daemon environment ready to link with Master Panel.${NC}"
+    echo -e "${GREEN}Node daemon environment ready hai master panel se connect hone ke liye.${NC}"
 }
 
 # Main loop
@@ -342,6 +344,6 @@ while true; do
         2) uninstall_panel; exit 0 ;;
         3) install_node; exit 0 ;;
         4) exit 0 ;;
-        *) echo -e "${RED}Invalid option, please choose between 1-4.${NC}"; sleep 2 ;;
+        *) echo -e "${RED}Galat option chuna hai, 1 se 4 ke beech me chunein.${NC}"; sleep 2 ;;
     esac
 done
