@@ -14,12 +14,12 @@ fi
 show_menu() {
     clear
     echo -e "${CYAN}==========================================${NC}"
-    echo -e "${CYAN}      CJH PANEL - INSTALLATION MENU${NC}[span_1](start_span)[span_1](end_span)"
+    echo -e "${CYAN}      CJH PANEL - INSTALLATION MENU${NC}"
     echo -e "${CYAN}==========================================${NC}"
-    echo -e "1) Install CJH Panel (Main Master Node)[span_2](start_span)"[span_2](end_span)
-    echo -e "2) Uninstall CJH Panel[span_3](start_span)"[span_3](end_span)
-    echo -e "3) Install Daemon/Node (For Worker Servers)[span_4](start_span)"[span_4](end_span)
-    echo -e "4) Exit[span_5](start_span)"[span_5](end_span)
+    echo -e "1) Install CJH Panel (Main Master Node)"
+    echo -e "2) Uninstall CJH Panel"
+    echo -e "3) Install Daemon/Node (For Worker Servers)"
+    echo -e "4) Exit"
     echo -e "${CYAN}==========================================${NC}"
     read -p "Apna option select karein [1-4]: " choice
 }
@@ -71,10 +71,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 50000;
 
-// Proxy trust fix for CodeSandbox and cloud environments
 app.set('trust proxy', true);
 
-// Database Setup
 const db = new sqlite3.Database('./database.sqlite', (err) => {
     if (err) console.error('Database opening error: ' + err.message);
     else console.log('Connected to SQLite database.');
@@ -88,7 +86,6 @@ db.serialize(() => {
         role TEXT
     )`);
 
-    // Default Admin User
     db.get(`SELECT * FROM users WHERE username = 'admin'`, async (err, row) => {
         if (!row) {
             const hashedPassword = await bcrypt.hash('admin', 10);
@@ -105,7 +102,6 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// Middleware for Auth
 const isAuthenticated = (req, res, next) => {
     if (req.session.user) return next();
     res.redirect('/login');
@@ -116,12 +112,10 @@ const isAdmin = (req, res, next) => {
     res.status(403).send('Access Denied. <a href="/dashboard">Go Back</a>');
 };
 
-// Root route redirects to Login
 app.get('/', (req, res) => {
     res.redirect('/login');
 });
 
-// Login Page
 app.get('/login', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -130,7 +124,7 @@ app.get('/login', (req, res) => {
             <meta charset="UTF-8">
             <title>CJH Panel - Login</title>
             <style>
-                body { background: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                body { background: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
                 .card { background: #1e293b; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 350px; }
                 h2 { text-align: center; margin-bottom: 24px; color: #38bdf8; }
                 input { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; }
@@ -138,7 +132,6 @@ app.get('/login', (req, res) => {
                 button:hover { background: #0ea5e9; }
                 .links { text-align: center; margin-top: 15px; font-size: 14px; }
                 .links a { color: #38bdf8; text-decoration: none; }
-                .links a:hover { text-decoration: underline; }
             </style>
         </head>
         <body>
@@ -171,7 +164,6 @@ app.post('/login', (req, res) => {
     });
 });
 
-// Register Page
 app.get('/register', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -180,7 +172,7 @@ app.get('/register', (req, res) => {
             <meta charset="UTF-8">
             <title>CJH Panel - Register</title>
             <style>
-                body { background: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                body { background: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
                 .card { background: #1e293b; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 350px; }
                 h2 { text-align: center; margin-bottom: 24px; color: #38bdf8; }
                 input { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; }
@@ -188,7 +180,6 @@ app.get('/register', (req, res) => {
                 button:hover { background: #0ea5e9; }
                 .links { text-align: center; margin-top: 15px; font-size: 14px; }
                 .links a { color: #38bdf8; text-decoration: none; }
-                .links a:hover { text-decoration: underline; }
             </style>
         </head>
         <body>
@@ -224,7 +215,6 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Member Dashboard
 app.get('/dashboard', isAuthenticated, (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -233,17 +223,16 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
             <meta charset="UTF-8">
             <title>Member Dashboard - CJH Panel</title>
             <style>
-                body { background: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
-                .container { max-width: 900px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+                body { background: #0f172a; color: #f8fafc; font-family: sans-serif; margin: 0; padding: 20px; }
+                .container { max-width: 900px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; }
                 h1 { color: #38bdf8; }
                 .btn { display: inline-block; padding: 10px 20px; background: #ef4444; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px; font-weight: bold; }
-                .btn:hover { background: #dc2626; }
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>Swagat hai, ${req.session.user.username} (Member)</h1>
-                <p>Yeh aapka Member Dashboard hai. Yahan aapke VMs aur Minecraft servers dikhenge.</p>
+                <p>Yeh aapka Member Dashboard hai.</p>
                 <hr style="border-color: #334155;">
                 <a href="/logout" class="btn">Logout</a>
             </div>
@@ -252,7 +241,6 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
     `);
 });
 
-// Admin Panel
 app.get('/admin', isAuthenticated, isAdmin, (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -261,17 +249,16 @@ app.get('/admin', isAuthenticated, isAdmin, (req, res) => {
             <meta charset="UTF-8">
             <title>Admin Panel - CJH Panel</title>
             <style>
-                body { background: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
-                .container { max-width: 900px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+                body { background: #0f172a; color: #f8fafc; font-family: sans-serif; margin: 0; padding: 20px; }
+                .container { max-width: 900px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; }
                 h1 { color: #38bdf8; }
                 .btn { display: inline-block; padding: 10px 20px; background: #ef4444; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px; font-weight: bold; }
-                .btn:hover { background: #dc2626; }
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>Admin Control Panel</h1>
-                <p>Yahan se aap VMs create, nodes manage, themes aur settings change kar sakte hain.</p>
+                <p>Yahan se aap VMs aur nodes manage kar sakte hain.</p>
                 <hr style="border-color: #334155;">
                 <a href="/logout" class="btn">Logout</a>
             </div>
@@ -280,7 +267,6 @@ app.get('/admin', isAuthenticated, isAdmin, (req, res) => {
     `);
 });
 
-// Logout Route
 app.get('/logout', (req, res) => {
     req.session.destroy(() => {
         res.redirect('/login');
@@ -292,7 +278,6 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 EOF
 
-    # Create systemd service for panel
     cat << 'EOF' > /etc/systemd/system/cjh-panel.service
 [Unit]
 Description=CJH Panel Service
@@ -333,10 +318,9 @@ uninstall_panel() {
 install_node() {
     echo -e "${GREEN}Daemon Node dependencies install ho rahi hain...${NC}"
     apt-get update && apt-get install -y docker.io curl
-    echo -e "${GREEN}Node daemon environment ready hai master panel se connect hone ke liye.${NC}"
+    echo -e "${GREEN}Node daemon environment ready hai.${NC}"
 }
 
-# Main loop
 while true; do
     show_menu
     case $choice in
@@ -344,6 +328,6 @@ while true; do
         2) uninstall_panel; exit 0 ;;
         3) install_node; exit 0 ;;
         4) exit 0 ;;
-        *) echo -e "${RED}Galat option chuna hai, 1 se 4 ke beech me chunein.${NC}"; sleep 2 ;;
+        *) echo -e "${RED}Galat option chuna hai.${NC}"; sleep 2 ;;
     esac
 done
